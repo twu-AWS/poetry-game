@@ -281,6 +281,8 @@ class PoetryGame:
         self.total_rounds = num_questions
         self.score = 0
         self.current_round = 0
+        self.correct_count = 0
+        self.wrong_count = 0
         
         # 从数据库加载题目
         self.questions = load_questions_from_db(self.total_rounds)
@@ -334,11 +336,13 @@ class PoetryGame:
         if selected == q["answer"]:
             # 答对了!
             self.score += 10
+            self.correct_count += 1
             self.score_label.config(text=f"得分: {self.score}")
             self.option_buttons[idx].config(bg="#90EE90")
             self.hint_label.config(text="✨ 太棒了!答对了! ✨", fg="#228B22")
         else:
             # 答错了 - 不扣分，但显示正确答案
+            self.wrong_count += 1
             self.option_buttons[idx].config(bg="#FFB6C1")
 
             # 显示正确答案
@@ -362,9 +366,35 @@ class PoetryGame:
     def game_over(self, won):
         """游戏结束"""
         if won:
-            msg = f"🎉 恭喜通关! 🎉\n\n你的得分: {self.score} 分\n\n太厉害了,诗词小达人!"
-            messagebox.showinfo("通关啦!", msg)
-        
+            # 计算正确率
+            accuracy = (self.correct_count / self.total_rounds * 100) if self.total_rounds > 0 else 0
+
+            # 根据得分给出评价
+            if accuracy >= 90:
+                comment = "完美!你是真正的诗词大师! 🌟"
+            elif accuracy >= 80:
+                comment = "非常棒!继续加油! 💪"
+            elif accuracy >= 70:
+                comment = "不错哦!再接再厉! 👍"
+            elif accuracy >= 60:
+                comment = "还可以,多多练习! 📚"
+            else:
+                comment = "加油!熟能生巧! 💪"
+
+            msg = f"""🎉 游戏结束! 🎉
+
+    📊 成绩统计:
+    ━━━━━━━━━━━━━━━━
+    总题数: {self.total_rounds} 题
+    答对: {self.correct_count} 题 ✅
+    答错: {self.wrong_count} 题 ❌
+    正确率: {accuracy:.1f}%
+    ━━━━━━━━━━━━━━━━
+    总得分: {self.score} 分
+
+    {comment}"""
+            messagebox.showinfo("游戏结束", msg)
+
         self.hint_label.config(text="🎊 游戏结束!点击重新开始再玩一次 🎊", fg="#FF6347")
     
     def run(self):
