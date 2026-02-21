@@ -1,0 +1,9 @@
+[project]
+name = "poetry-game"
+version = "1.0.0"
+description = "诗词大闯关游戏"
+requires-python = ">=3.8"
+dependencies = [
+    "duckdb>=1.0.0",
+    "pyinstaller>=6.0.0",
+]

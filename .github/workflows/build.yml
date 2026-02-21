@@ -1,0 +1,63 @@
+name: Build Executables
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        
+      - name: Set up Python
+        run: uv python install 3.11
+        
+      - name: Install dependencies
+        run: uv sync
+        
+      - name: Initialize database
+        run: uv run init_poetry_db.py
+        
+      - name: Build executable
+        run: |
+          uv run pyinstaller --name=诗词大闯关 --windowed --onefile --add-data=poetry_game.db;. poetry_game.py
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: poetry-game-windows
+          path: dist/诗词大闯关.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        
+      - name: Set up Python
+        run: uv python install 3.11
+        
+      - name: Install dependencies
+        run: uv sync
+        
+      - name: Initialize database
+        run: uv run init_poetry_db.py
+        
+      - name: Build executable
+        run: |
+          uv run pyinstaller --name=诗词大闯关 --windowed --onedir --add-data=poetry_game.db:. poetry_game.py
+          cd dist && zip -r 诗词大闯关-macOS.zip 诗词大闯关.app
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: poetry-game-macos
+          path: dist/诗词大闯关-macOS.zip
