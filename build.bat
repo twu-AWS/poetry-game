@@ -15,6 +15,7 @@ uv run pyinstaller ^
     --windowed ^
     --onefile ^
     --add-data=poetry_game.db;. ^
+    --add-data=bg.png;. ^
     poetry_game.py
 
 echo.

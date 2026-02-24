@@ -88,7 +88,6 @@ class PoetryGame:
         self.window = tk.Tk()
         self.window.title("🏯 诗词大闯关 🏯")
         self.window.geometry("600x500")
-        self.window.configure(bg="#FFF8DC")  # 米黄色背景
         
         # 游戏状态
         self.score = 0
@@ -98,85 +97,87 @@ class PoetryGame:
         self.correct_count = 0  # 答对题数
         self.wrong_count = 0  # 答错题数
         
+        # 创建Canvas作为主容器
+        self.canvas = tk.Canvas(self.window, width=600, height=500, highlightthickness=0)
+        self.canvas.pack(fill="both", expand=True)
+        
+        # 加载并设置背景图片
+        self.load_background()
+        
         # 创建界面
         self.create_widgets()
         
         # 开始新游戏
         self.start_new_game()
     
+    def load_background(self):
+        """加载背景图片"""
+        try:
+            bg_image_path = get_resource_path('bg.png')
+            # 使用tkinter的PhotoImage直接加载PNG
+            self.bg_photo = tk.PhotoImage(file=bg_image_path)
+            
+            # 在Canvas上绘制背景
+            self.canvas.create_image(0, 0, image=self.bg_photo, anchor="nw", tags="bg")
+            print("背景图片加载成功")
+        except Exception as e:
+            print(f"无法加载背景图片: {e}")
+            self.canvas.configure(bg="#FFF8DC")
+            import traceback
+            traceback.print_exc()
+    
     def create_widgets(self):
-        """创建游戏界面组件"""
+        """创建游戏界面组件 - 使用Canvas绘制"""
         
-        # ===== 顶部: 标题和分数 =====
-        top_frame = tk.Frame(self.window, bg="#FFF8DC")
-        top_frame.pack(fill="x", padx=20, pady=10)
-        
-        self.title_label = tk.Label(
-            top_frame,
+        # ===== 顶部: 标题和分数 (使用Canvas文本) =====
+        self.title_text = self.canvas.create_text(
+            300, 30,
             text="🏯 诗词大闯关 🏯",
             font=("Microsoft YaHei", 24, "bold"),
-            bg="#FFF8DC",
-            fg="#8B4513"
+            fill="#8B4513",
+            tags="ui"
         )
-        self.title_label.pack()
         
-        self.score_label = tk.Label(
-            top_frame,
+        self.score_text = self.canvas.create_text(
+            300, 65,
             text="得分: 0",
             font=("Microsoft YaHei", 16),
-            bg="#FFF8DC",
-            fg="#2E8B57"
+            fill="#2E8B57",
+            tags="ui"
         )
-        self.score_label.pack()
         
-        # ===== 进度条: 小人闯关 =====
-        progress_frame = tk.Frame(self.window, bg="#FFF8DC")
-        progress_frame.pack(fill="x", padx=20, pady=10)
-        
-        self.progress_canvas = tk.Canvas(
-            progress_frame,
-            width=560,
-            height=60,
-            bg="#90EE90",
-            highlightthickness=2,
-            highlightbackground="#228B22"
-        )
-        self.progress_canvas.pack()
-        
-        # 画关卡节点
-        self.draw_progress()
+        # ===== 进度条区域 =====
+        self.progress_y = 110
         
         # ===== 中间: 诗词题目 =====
-        question_frame = tk.Frame(self.window, bg="#FFF8DC")
-        question_frame.pack(fill="x", padx=20, pady=10)
-        
-        self.poem_title_label = tk.Label(
-            question_frame,
+        self.poem_title_text = self.canvas.create_text(
+            300, 180,
             text="",
             font=("Microsoft YaHei", 12),
-            bg="#FFF8DC",
-            fg="#666666"
+            fill="#666666",
+            tags="ui"
         )
-        self.poem_title_label.pack()
         
-        self.question_label = tk.Label(
-            question_frame,
+        self.question_text = self.canvas.create_text(
+            300, 220,
             text="",
             font=("KaiTi", 22),
-            bg="#FFF8DC",
-            fg="#333333",
-            wraplength=500
+            fill="#333333",
+            width=500,
+            tags="ui"
         )
-        self.question_label.pack(pady=10)
         
-        # ===== 选项按钮 =====
-        options_frame = tk.Frame(self.window, bg="#FFF8DC")
-        options_frame.pack(fill="x", padx=40, pady=10)
-        
+        # ===== 选项按钮 (使用真实按钮，但放在Canvas上) =====
         self.option_buttons = []
+        button_y_start = 280
         for i in range(4):
+            row = i // 2
+            col = i % 2
+            x = 150 + col * 200
+            y = button_y_start + row * 60
+            
             btn = tk.Button(
-                options_frame,
+                self.canvas,
                 text="",
                 font=("Microsoft YaHei", 14),
                 width=12,
@@ -186,22 +187,21 @@ class PoetryGame:
                 cursor="hand2",
                 command=lambda idx=i: self.check_answer(idx)
             )
-            btn.grid(row=i//2, column=i%2, padx=10, pady=5)
+            self.canvas.create_window(x, y, window=btn, tags="ui")
             self.option_buttons.append(btn)
         
         # ===== 底部: 提示信息 =====
-        self.hint_label = tk.Label(
-            self.window,
+        self.hint_text = self.canvas.create_text(
+            300, 420,
             text="选择正确的词语填入空格中吧!",
             font=("Microsoft YaHei", 12),
-            bg="#FFF8DC",
-            fg="#4169E1"
+            fill="#4169E1",
+            tags="ui"
         )
-        self.hint_label.pack(pady=10)
         
         # ===== 重新开始按钮 =====
         self.restart_btn = tk.Button(
-            self.window,
+            self.canvas,
             text="🔄 重新开始",
             font=("Microsoft YaHei", 12),
             bg="#87CEEB",
@@ -209,54 +209,62 @@ class PoetryGame:
             cursor="hand2",
             command=self.start_new_game
         )
-        self.restart_btn.pack(pady=10)
+        self.canvas.create_window(300, 460, window=self.restart_btn, tags="ui")
     
     def draw_progress(self):
-        """画进度条和小人"""
-        self.progress_canvas.delete("all")
+        """画进度条和小人 - 直接在主Canvas上绘制"""
+        # 删除旧的进度条元素
+        self.canvas.delete("progress")
+        
+        y = self.progress_y
         
         # 画路径
-        self.progress_canvas.create_line(
-            30, 30, 530, 30,
+        self.canvas.create_line(
+            50, y, 550, y,
             width=4,
-            fill="#228B22"
+            fill="#228B22",
+            tags="progress"
         )
         
-        # 画关卡节点 (圆圈) - 只画关卡数量的节点
+        # 画关卡节点 (圆圈)
         step = 500 / (self.total_rounds - 1) if self.total_rounds > 1 else 0
         for i in range(self.total_rounds):
-            x = 30 + int(i * step)
+            x = 50 + int(i * step)
             color = "#FFD700" if i < self.current_round else "#FFFFFF"
-            self.progress_canvas.create_oval(
-                x-10, 20, x+10, 40,
+            self.canvas.create_oval(
+                x-10, y-10, x+10, y+10,
                 fill=color,
                 outline="#228B22",
-                width=2
+                width=2,
+                tags="progress"
             )
             if i < self.total_rounds - 1:
                 # 普通关卡显示数字
-                self.progress_canvas.create_text(
-                    x, 50,
+                self.canvas.create_text(
+                    x, y+20,
                     text=str(i+1),
-                    font=("Arial", 10)
+                    font=("Arial", 10),
+                    tags="progress"
                 )
             else:
                 # 最后一关显示奖杯
-                self.progress_canvas.create_text(
-                    x, 50,
+                self.canvas.create_text(
+                    x, y+20,
                     text="🏆",
-                    font=("Arial", 12)
+                    font=("Arial", 12),
+                    tags="progress"
                 )
         
         # 画小人 (在当前位置)
         if self.total_rounds > 1:
-            x = 30 + int(self.current_round * step)
+            x = 50 + int(self.current_round * step)
         else:
-            x = 30
-        self.progress_canvas.create_text(
-            x, 5,
+            x = 50
+        self.canvas.create_text(
+            x, y-25,
             text="🧒",
-            font=("Arial", 16)
+            font=("Arial", 16),
+            tags="progress"
         )
     
     def start_new_game(self):
@@ -292,8 +300,8 @@ class PoetryGame:
             self.window.destroy()
             return
         
-        self.score_label.config(text="得分: 0")
-        self.hint_label.config(text="选择正确的词语填入空格中吧!", fg="#4169E1")
+        self.canvas.itemconfig(self.score_text, text="得分: 0")
+        self.canvas.itemconfig(self.hint_text, text="选择正确的词语填入空格中吧!", fill="#4169E1")
         self.draw_progress()
         
         # 显示第一题
@@ -309,8 +317,11 @@ class PoetryGame:
         
         # 显示题目类型标签
         type_label = "📜 古诗" if q.get("type") == "古诗" else "📖 文言文"
-        self.poem_title_label.config(text=f"第 {self.current_round + 1} 关 - {type_label} - {q['title']}")
-        self.question_label.config(text=q["question"])
+        self.canvas.itemconfig(
+            self.poem_title_text,
+            text=f"第 {self.current_round + 1} 关 - {type_label} - {q['title']}"
+        )
+        self.canvas.itemconfig(self.question_text, text=q["question"])
         
         # 打乱选项顺序
         options = q["options"].copy()
@@ -337,9 +348,9 @@ class PoetryGame:
             # 答对了!
             self.score += 10
             self.correct_count += 1
-            self.score_label.config(text=f"得分: {self.score}")
+            self.canvas.itemconfig(self.score_text, text=f"得分: {self.score}")
             self.option_buttons[idx].config(bg="#90EE90")
-            self.hint_label.config(text="✨ 太棒了!答对了! ✨", fg="#228B22")
+            self.canvas.itemconfig(self.hint_text, text="✨ 太棒了!答对了! ✨", fill="#228B22")
         else:
             # 答错了 - 不扣分，但显示正确答案
             self.wrong_count += 1
@@ -350,7 +361,7 @@ class PoetryGame:
                 if opt == q["answer"]:
                     self.option_buttons[i].config(bg="#90EE90")
 
-            self.hint_label.config(text=f"❌ 答错了!正确答案是: {q['answer']}", fg="#DC143C")
+            self.canvas.itemconfig(self.hint_text, text=f"❌ 答错了!正确答案是: {q['answer']}", fill="#DC143C")
 
         # 前进到下一关
         self.current_round += 1
@@ -395,7 +406,7 @@ class PoetryGame:
     {comment}"""
             messagebox.showinfo("游戏结束", msg)
 
-        self.hint_label.config(text="🎊 游戏结束!点击重新开始再玩一次 🎊", fg="#FF6347")
+        self.canvas.itemconfig(self.hint_text, text="🎊 游戏结束!点击重新开始再玩一次 🎊", fill="#FF6347")
     
     def run(self):
         """运行游戏"""

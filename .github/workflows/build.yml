@@ -30,7 +30,7 @@ jobs:
         
       - name: Build executable
         run: |
-          uv run pyinstaller --name=诗词大闯关 --windowed --onefile --add-data=poetry_game.db;. poetry_game.py
+          uv run pyinstaller --name=诗词大闯关 --windowed --onefile --add-data=poetry_game.db;. --add-data=bg.png;. poetry_game.py
           
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -57,7 +57,7 @@ jobs:
         
       - name: Build executable
         run: |
-          uv run pyinstaller --name=诗词大闯关 --windowed --onedir --add-data=poetry_game.db:. poetry_game.py
+          uv run pyinstaller --name=诗词大闯关 --windowed --onedir --add-data=poetry_game.db:. --add-data=bg.png:. poetry_game.py
           cd dist && zip -r 诗词大闯关-macOS.zip 诗词大闯关.app
           
       - name: Upload artifact
