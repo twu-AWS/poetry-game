@@ -33,7 +33,7 @@ jobs:
         
       - name: Build executable
         run: |
-          uv run pyinstaller --name=诗词大闯关 --windowed --onefile --add-data=poetry_game.db;. --add-data=bg.png;. poetry_game.py
+          uv run pyinstaller --name="诗词大闯关" --windowed --onefile "--add-data=poetry_game.db;." "--add-data=bg.png;." poetry_game.py
           
       - name: Upload artifact
         uses: actions/upload-artifact@v4
