@@ -157,13 +157,13 @@ def create_database():
     
     # 验证数据
     result = conn.execute("SELECT COUNT(*) as count, type FROM poems GROUP BY type").fetchall()
-    print("✅ 数据库创建成功!")
-    print(f"📚 题库统计:")
+    print("Database created successfully!")
+    print("Question stats:")
     for count, ptype in result:
-        print(f"   {ptype}: {count}道题")
+        print(f"   {ptype}: {count}")
     
     total = conn.execute("SELECT COUNT(*) FROM poems").fetchone()[0]
-    print(f"   总计: {total}道题")
+    print(f"   Total: {total}")
     
     conn.close()
 
