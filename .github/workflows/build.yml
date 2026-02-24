@@ -13,14 +13,14 @@ permissions:
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: 1
     steps:
       - uses: actions/checkout@v4
       
       - name: Install uv
         uses: astral-sh/setup-uv@v5
-      
-      - name: Set UTF-8 encoding
-        run: echo "PYTHONIOENCODING=utf-8" >> $GITHUB_ENV
         
       - name: Set up Python
         run: uv python install 3.11
