@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   security-events: none
 
 jobs:
@@ -68,3 +68,19 @@ jobs:
         with:
           name: poetry-game-macos
           path: dist/诗词大闯关-macOS.zip
+
+  release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            poetry-game-windows/诗词大闯关.exe
+            poetry-game-macos/诗词大闯关-macOS.zip
+          generate_release_notes: true
